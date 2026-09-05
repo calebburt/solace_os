@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include "exceptions/exceptions.h"
 #include "lib/stdio.h"
+#include "syscall/syscall.h"
 
 // Helper function to read ESR_EL1
 static inline uint64_t read_esr_el1(void) {
@@ -59,10 +60,6 @@ void handle_sync_exception(saved_registers_t *context) {
     uint32_t ec = (esr >> 26) & 0x3F; // Extract Exception Class (bits 31:26)
     uint32_t iss = esr & 0x1FFFFFF;   // Extract Instruction Specific Syndrome (bits 24:0)
 
-    kprintf("\n--- Synchronous Exception Taken ---\n");
-    kprintf(" ESR_EL1: %016llx (EC: 0x%x, ISS: 0x%x)\n", esr, ec, iss);
-    kprintf(" ELR_EL1: %016llx (Return Address)\n", elr);
-
     const char* ec_str = "Unknown";
     bool far_valid = false;
 
@@ -97,13 +94,6 @@ void handle_sync_exception(saved_registers_t *context) {
         default: ec_str = "Unhandled Exception Class"; break;
     }
 
-    kprintf(" Type: %s\n", ec_str);
-    if (far_valid) {
-        kprintf(" FAR_EL1: %016llx (Faulting Virtual Address)\n", far);
-    }
-    print_registers(context);
-    kprintf("-------------------------------------\n");
-
     // Handle specific exceptions or panic
     if (ec == 0b111100) { // BRK instruction
         kprintf("BRK instruction encountered. Continuing execution.\n");
@@ -112,15 +102,25 @@ void handle_sync_exception(saved_registers_t *context) {
         // Return normally via restore_context -> eret
     } else if (ec == 0b010101) { // SVC instruction
         uint16_t svc_imm = iss & 0xFFFF; // Extract immediate value from ISS
-        kprintf("SVC instruction encountered (Imm: 0x%x). Implement SVC handler.\n", svc_imm);
         // Handle the system call based on svc_imm and registers x0-x7 in context
-        // For now, just advance ELR and return.
-         context->elr_el1 += 4;
-    }
-     else {
+        handle_syscall(svc_imm, context);
+    } else {
+        kprintf("\n--- Synchronous Exception Taken ---\n");
+        kprintf(" ESR_EL1: %016llx (EC: 0x%x, ISS: 0x%x)\n", esr, ec, iss);
+        kprintf(" ELR_EL1: %016llx (Return Address)\n", elr);
+
+        kprintf(" Type: %s\n", ec_str);
+        if (far_valid) {
+            kprintf(" FAR_EL1: %016llx (Faulting Virtual Address)\n", far);
+        }
+        print_registers(context);
+        kprintf("-------------------------------------\n");
         // For most other synchronous exceptions, panic.
         panic("Unhandled synchronous exception");
     }
+
+    // The assembly wrapper restores the frame and executes eret after this
+    // function returns.
 }
 
 // Called by assembly wrapper for IRQ exceptions

@@ -48,8 +48,8 @@ static void mark_range_used(uint64_t base_addr, uint64_t size) {
     if (start_frame >= PMM_TOTAL_FRAMES) return; // Start address out of managed range
     if (end_frame >= PMM_TOTAL_FRAMES) end_frame = PMM_TOTAL_FRAMES - 1; // Cap end address
 
-    kprintf("PMM: Marking used 0x%llx - 0x%llx (Frames %llu - %llu)\n",
-            base_addr, base_addr + size, start_frame, end_frame);
+    // kprintf("PMM: Marking used 0x%llx - 0x%llx (Frames %llu - %llu)\n",
+    //         base_addr, base_addr + size, start_frame, end_frame);
 
     for (uint64_t i = start_frame; i <= end_frame; ++i) {
         if (!test_bit(i)) {
@@ -74,8 +74,8 @@ static void mark_range_free(uint64_t base_addr, uint64_t size) {
     if (start_frame >= PMM_TOTAL_FRAMES) return; // Start address out of managed range
     if (end_frame >= PMM_TOTAL_FRAMES) end_frame = PMM_TOTAL_FRAMES - 1; // Cap end address
 
-    kprintf("PMM: Marking free 0x%llx - 0x%llx (Frames %llu - %llu)\n",
-            base_addr, base_addr + size, start_frame, end_frame);
+    // kprintf("PMM: Marking free 0x%llx - 0x%llx (Frames %llu - %llu)\n",
+    //         base_addr, base_addr + size, start_frame, end_frame);
 
     for (uint64_t i = start_frame; i <= end_frame; ++i) {
         if (test_bit(i)) { // Only count if it wasn't already free
@@ -104,8 +104,8 @@ void frame_alloc_init(const KERNEL_BOOT_PARAMS *params) {
     highest_usable_address = PMM_RAM_BASE;
     
     if (params) {
-        kprintf("PMM: Kernel Physical Range: 0x%llx - 0x%llx\n",
-                params->kernel_phys_start, params->kernel_phys_end);
+        // kprintf("PMM: Kernel Physical Range: 0x%llx - 0x%llx\n",
+        //         params->kernel_phys_start, params->kernel_phys_end);
                 
         // For now, we'll simplify and just reserve the kernel address range
         // In a full implementation, we would parse the UEFI memory map from params
@@ -121,8 +121,8 @@ void frame_alloc_init(const KERNEL_BOOT_PARAMS *params) {
         uint64_t kernel_start = (uint64_t)&_kernel_start;
         uint64_t kernel_end = (uint64_t)&_kernel_end;
         
-        kprintf("PMM: Kernel boundaries from linker: 0x%llx - 0x%llx\n",
-                kernel_start, kernel_end);
+        // kprintf("PMM: Kernel boundaries from linker: 0x%llx - 0x%llx\n",
+        //         kernel_start, kernel_end);
                 
         // Mark all memory as free initially
         mark_range_free(PMM_RAM_BASE, PMM_MANAGEABLE_SIZE);

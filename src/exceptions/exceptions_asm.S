@@ -49,11 +49,9 @@ _exception_vector_table:
 .macro save_context
     // Allocate space on the stack for GPRs (x0-x30), SPSR_EL1, ELR_EL1, SP_EL0
     // 31 GPRs + 3 system regs = 34 registers * 8 bytes/reg = 272 bytes
-    // Align stack pointer to 16 bytes before pushing
+    // Exception entry preserves the required 16-byte stack alignment.
+    // Save x0 and x1 before using x0 as the context pointer.
     sub sp, sp, #288       // Allocate space (272 + padding for alignment)
-    mov x0, sp             // Copy SP to temporary register
-    and x0, x0, #-16       // Align the register to 16-byte boundary
-    mov sp, x0             // Update SP with aligned value
 
     // Store GPRs x0-x30 (31 registers)
     stp x0, x1, [sp, #16 * 0]

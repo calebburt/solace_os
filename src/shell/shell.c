@@ -291,38 +291,38 @@ static void init_command_table(void) {
     static char alloc_cmd[] = "alloc";
     static char free_cmd[] = "free";
     static char pmm_info_cmd[] = "pmm_info";
-    
+
     commands[0].name = help_cmd;
     commands[0].func = cmd_help;
-    
+
     commands[1].name = memdump_cmd;
     commands[1].func = cmd_memdump;
-    
+
     commands[2].name = peek_cmd;
     commands[2].func = cmd_peek;
-    
+
     commands[3].name = poke_cmd;
     commands[3].func = cmd_poke;
-    
+
     commands[4].name = alloc_cmd;
     commands[4].func = cmd_alloc;
-    
+
     commands[5].name = free_cmd;
     commands[5].func = cmd_free;
-    
+
     commands[6].name = pmm_info_cmd;
     commands[6].func = cmd_pmm_info;
-    
+
     // Sentinel
     commands[7].name = NULL;
     commands[7].func = NULL;
-    
-    kprintf("Command table initialized:\n");
-    for (int i = 0; i < 7; i++) {
-        kprintf("  [%d] name at %p: '%s', len=%d\n", 
-                i, commands[i].name, commands[i].name, 
-                strlen(commands[i].name));
-    }
+
+    // kprintf("Command table initialized:\n");
+    // for (int i = 0; i < 7; i++) {
+    //     kprintf("  [%d] name at %p: '%s', len=%d\n",
+    //             i, commands[i].name, commands[i].name,
+    //             strlen(commands[i].name));
+    // }
 }
 
 void shell_loop() {
@@ -330,22 +330,24 @@ void shell_loop() {
     char *argv[MAX_ARGS];
     int argc;
 
-    kprintf("\nMeringueOS Shell\n");
+    kprintf("\nSolaceOS Shell\n");
     kprintf("Type 'help' for available commands.\n");
-    
+
     // Initialize command table at runtime
     init_command_table();
-    
+
     // Debug command table
-    kprintf("Command table at %p:\n", commands);
-    kprintf("Debug: .rodata section address range: %p to %p\n", &_rodata_start, &_rodata_end);
-    for (int i = 0; commands[i].name != NULL; i++) {
-        kprintf("  [%d] name at %p: '%s', func at %p\n", 
-                i, commands[i].name, commands[i].name, commands[i].func);
-    }
+    // kprintf("Command table at %p:\n", commands);
+    // kprintf("Debug: .rodata section address range: %p to %p\n", &_rodata_start, &_rodata_end);
+    // for (int i = 0; commands[i].name != NULL; i++) {
+    //     kprintf("  [%d] name at %p: '%s', func at %p\n",
+    //             i, commands[i].name, commands[i].name, commands[i].func);
+    // }
 
     while (1) {
-        kprintf("> ");
+        asm volatile("svc #0"); // Trigger a syscall for demonstration (can be removed later)
+        kprintf("");
+        kprintf("\n> ");
         memset(cmd_buffer, 0, MAX_CMD_LEN);
         int i = 0;
         char c;
@@ -385,22 +387,22 @@ void shell_loop() {
             continue; // Only whitespace
         }
 
+        if (strcmp(argv[0], "exit") == 0) {
+            kprintf("Exiting shell.\n");
+            break; // Exit the shell loop
+        }
+
         // Find and execute command
         bool found = false;
-        
-        // Debug info
-        kprintf("Command entered: '%s'\n", argv[0]);
-        
+
         for (int i = 0; commands[i].name != NULL; i++) {
-            kprintf("Comparing with command: '%s'\n", commands[i].name);
             if (strcmp(argv[0], commands[i].name) == 0) {
-                kprintf("Match found! Executing...\n");
                 commands[i].func(argc, argv);
                 found = true;
                 break;
             }
         }
-        
+
         if (!found) {
             kprintf("Unknown command: %s\n", argv[0]);
         }

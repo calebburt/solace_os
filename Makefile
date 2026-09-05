@@ -11,7 +11,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -ffreestanding -nostdlib -nostartfiles -mcpu=cortex-a72 -I./src/include
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -ffreestanding -nostdlib -nostartfiles -mcpu=cortex-a72 -I./src/include
 ASFLAGS = -mcpu=cortex-a72
 LDFLAGS = -nostdlib
 
@@ -23,6 +23,7 @@ EXCEPTIONS_DIR = $(SRC_DIR)/exceptions
 UI_DIR = $(SRC_DIR)/ui
 LIB_DIR = $(SRC_DIR)/lib
 SHELL_DIR = $(SRC_DIR)/shell
+SYSCALL_DIR = $(SRC_DIR)/syscall
 INCLUDE_DIR = $(SRC_DIR)/include
 
 # Build directories
@@ -36,7 +37,8 @@ C_SRCS = $(wildcard $(BOOT_DIR)/*.c) \
 		$(wildcard $(EXCEPTIONS_DIR)/*.c) \
 		$(wildcard $(UI_DIR)/*.c) \
 		$(wildcard $(LIB_DIR)/*.c) \
-		$(wildcard $(SHELL_DIR)/*.c)
+		$(wildcard $(SHELL_DIR)/*.c) \
+		$(wildcard $(SYSCALL_DIR)/*.c)
 
 # Object files
 ASM_OBJS = $(patsubst $(SRC_DIR)/%.S, $(OBJ_DIR)/%.o, $(ASM_SRCS))

@@ -57,21 +57,33 @@ void boot_debug_copy(void *dest, void *src, size_t size) {
     early_debug_print(" bytes\n");
 }
 
+void shutdown(void) {
+    // Ask the platform firmware to power off the virtual machine.
+    register uint64_t psci_function asm("x0") = 0x84000008;
+    asm volatile("hvc #0" : "+r"(psci_function) :: "memory");
+
+    // If the above doesn't work, halt the CPU
+    kprintf("Shutdown failed, halting CPU.\n");
+    while (1) {
+        asm volatile("wfi");
+    }
+}
+
 // Kernel entry point
 void kernel_main(KERNEL_BOOT_PARAMS *params) {
     // Early initialization - placeholder for UART setup
     // We'll assume kprintf writes to a UART for now
     
-    kprintf("MeringueOS starting...\n");
-    kprintf("Kernel loaded at physical address: 0x%llx\n", 
-            params ? params->kernel_phys_start : 0);
+    kprintf("SolaceOS starting...\n");
+    // kprintf("Kernel loaded at physical address: 0x%llx\n", 
+    //         params ? params->kernel_phys_start : 0);
             
     // Debug section information
-    kprintf("Memory Sections:\n");
-    kprintf("  .text:   %p to %p\n", &_kernel_start, &_text_end);
-    kprintf("  .rodata: %p to %p (load: %p)\n", &_rodata_start, &_rodata_end, &_rodata_load);
-    kprintf("  .data:   %p to %p (load: %p)\n", &_data_start, &_data_end, &_data_load);
-    kprintf("  .bss:    %p to %p\n", &_bss_start, &_bss_end);
+    // kprintf("Memory Sections:\n");
+    // kprintf("  .text:   %p to %p\n", &_kernel_start, &_text_end);
+    // kprintf("  .rodata: %p to %p (load: %p)\n", &_rodata_start, &_rodata_end, &_rodata_load);
+    // kprintf("  .data:   %p to %p (load: %p)\n", &_data_start, &_data_end, &_data_load);
+    // kprintf("  .bss:    %p to %p\n", &_bss_start, &_bss_end);
     
     // Initialize memory management subsystem
     kprintf("Initializing Physical Memory Manager...\n");
@@ -93,8 +105,6 @@ void kernel_main(KERNEL_BOOT_PARAMS *params) {
     
     // If shell returns, halt
     kprintf("Kernel halting.\n");
-    while(1) {
-        // This is equivalent to a halt
-        asm volatile("wfi");
-    }
+    
+    shutdown();
 }

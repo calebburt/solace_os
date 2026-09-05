@@ -5,8 +5,8 @@ ENTRY(_start)
 
 SECTIONS
 {
-    /* Kernel starts at 0x40100000 for QEMU virt machine */
-    . = 0x40100000;
+    /* QEMU -kernel loads the raw image at 0x40080000. */
+    . = 0x40080000;
     _kernel_start = .;
 
     .text : ALIGN(8)

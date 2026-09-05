@@ -32,6 +32,17 @@ int kprintf(const char *format, ...) {
             // Check for length modifiers
             bool is_long = false;
             bool is_longlong = false;
+            bool is_size_t = false;
+
+            // Skip printf flags and field width before reading the length
+            // modifier. Padding is optional for this freestanding formatter.
+            while (*format == '-' || *format == '+' || *format == '0' ||
+                   *format == ' ') {
+                format++;
+            }
+            while (*format >= '0' && *format <= '9') {
+                format++;
+            }
             
             if (*format == 'l') {
                 is_long = true;
@@ -41,6 +52,9 @@ int kprintf(const char *format, ...) {
                     is_long = false;
                     format++;
                 }
+            } else if (*format == 'z') {
+                is_size_t = true;
+                format++;
             }
             
             // Process format specifier
@@ -63,7 +77,7 @@ int kprintf(const char *format, ...) {
                     int64_t value;
                     if (is_longlong)
                         value = va_arg(args, int64_t);
-                    else if (is_long)
+                    else if (is_long || is_size_t)
                         value = va_arg(args, long);
                     else
                         value = va_arg(args, int);
@@ -96,7 +110,7 @@ int kprintf(const char *format, ...) {
                     uint64_t value;
                     if (is_longlong)
                         value = va_arg(args, uint64_t);
-                    else if (is_long)
+                    else if (is_long || is_size_t)
                         value = va_arg(args, unsigned long);
                     else
                         value = va_arg(args, unsigned int);
@@ -123,7 +137,7 @@ int kprintf(const char *format, ...) {
                     uint64_t value;
                     if (is_longlong)
                         value = va_arg(args, uint64_t);
-                    else if (is_long)
+                    else if (is_long || is_size_t)
                         value = va_arg(args, unsigned long);
                     else
                         value = va_arg(args, unsigned int);

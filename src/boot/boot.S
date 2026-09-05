@@ -44,6 +44,7 @@ skip_bss_clear:
     // Set up exception vector table
     ldr     x0, =_exception_vector_table
     msr     vbar_el1, x0
+    isb
 
     // Set up EL1 (kernel mode)
     mrs     x0, CurrentEL
